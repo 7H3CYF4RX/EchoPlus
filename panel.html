@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EchoPlus Panel</title>
+  <link rel="stylesheet" href="styles/themes.css">
+  <link rel="stylesheet" href="styles/components.css">
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/intercept.css">
+</head>
+<body>
+  <div id="app" class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <h1 class="app-title"><span class="logo">📡</span>Echo<span class="plus">Plus</span></h1>
+      </div>
+      <div class="header-right">
+        <button id="theme-toggle" class="icon-btn" title="Toggle Theme"><span class="theme-icon">🌙</span></button>
+        <button id="clear-all" class="icon-btn" title="Clear All">🗑️</button>
+        <button id="export-btn" class="icon-btn" title="Export">📥</button>
+        <button id="import-btn" class="icon-btn" title="Import">📤</button>
+        <input type="file" id="import-file" accept=".json" class="hidden">
+      </div>
+    </header>
+
+    <div class="main-layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <h2>Requests</h2>
+          <span class="badge" id="request-count">0</span>
+          <button id="clear-all-requests" class="btn-icon" title="Clear All Requests">🗑️</button>
+        </div>
+        <div class="search-section">
+          <input type="text" id="search-input" class="search-input" placeholder="Search...">
+          <label><input type="checkbox" id="regex-toggle">Regex</label>
+          <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="GET">GET</button>
+            <button class="filter-btn" data-filter="POST">POST</button>
+            <button class="filter-btn" data-filter="starred">⭐</button>
+          </div>
+        </div>
+        <div id="request-list" class="request-list"></div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="content-area">
+        <nav class="tab-nav">
+          <button class="tab-btn" data-tab="intercept">🚦 Intercept</button>
+          <button class="tab-btn active" data-tab="repeater">🔄 Repeater</button>
+          <button class="tab-btn" data-tab="intruder">⚔️ Intruder</button>
+          <button class="tab-btn" data-tab="scanner">🔍 Scanner</button>
+          <button class="tab-btn" data-tab="manipulation">🔧 Manipulation</button>
+          <button class="tab-btn" data-tab="chat">💬 Chat</button>
+          <button class="tab-btn" data-tab="settings">⚙️ Settings</button>
+        </nav>
+
+        <div class="tab-panels">
+          <!-- Intercept -->
+          <div id="intercept-panel" class="tab-panel">
+            <div class="intercept-layout">
+              <!-- Intercept Controls Header -->
+              <div class="intercept-header">
+                <div class="intercept-status">
+                  <button id="intercept-toggle" class="btn btn-danger">
+                    <span class="intercept-icon">🔴</span>
+                    <span id="intercept-status-text">Intercept is OFF</span>
+                  </button>
+                  <div class="intercept-info">
+                    <span id="intercept-queue-count" class="badge">0</span>
+                    <span class="text-muted">in queue</span>
+                  </div>
+                </div>
+                <div class="intercept-actions">
+                  <button id="intercept-forward" class="btn btn-primary" disabled>
+                    ➤ Forward
+                  </button>
+                  <button id="intercept-drop" class="btn btn-secondary" disabled>
+                    ✕ Drop
+                  </button>
+                  <button id="intercept-send-to-repeater" class="btn btn-accent" disabled title="Send to Repeater">
+                    🔁 Repeater
+                  </button>
+                  <button id="intercept-forward-all" class="btn btn-secondary" disabled>
+                    ⏩ Forward All
+                  </button>
+                  <button id="intercept-clear-queue" class="btn btn-secondary">
+                    🗑️ Clear Queue
+                  </button>
+                </div>
+              </div>
+
+              <!-- Intercept Options Bar -->
+              <div class="intercept-options">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="intercept-requests" checked>
+                  <span>Requests</span>
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" id="intercept-responses">
+                  <span>Responses</span>
+                </label>
+                <div class="option-divider"></div>
+                <label class="option-label">Scope:</label>
+                <select id="intercept-scope-filter" class="text-input compact">
+                  <option value="all">All</option>
+                  <option value="in-scope">In-Scope</option>
+                  <option value="out-scope">Out-of-Scope</option>
+                </select>
+              </div>
+
+              <!-- Split Pane Layout -->
+              <div class="intercept-split-pane">
+                <!-- Left: Request List -->
+                <div class="intercept-list-pane">
+                  <div class="list-header">
+                    <h4>Intercepted Requests</h4>
+                    <span id="list-count" class="list-count">0 requests</span>
+                  </div>
+                  <div id="intercept-request-list" class="intercept-request-list">
+                    <!-- Empty state -->
+                    <div id="list-empty" class="list-empty">
+                      <span class="empty-icon">🚦</span>
+                      <p>No intercepted requests</p>
+                      <small>Enable interception to start capturing</small>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Right: Request Details -->
+                <div class="intercept-detail-pane">
+                  <div id="intercept-empty" class="intercept-empty">
+                    <div class="empty-state">
+                      <span class="empty-icon">📝</span>
+                      <h3>No Request Selected</h3>
+                      <p>Select a request from the list to view and modify</p>
+                    </div>
+                  </div>
+
+                  <div id="intercept-editor" class="intercept-editor" style="display: none;">
+                    <!-- Request Info Bar -->
+                    <div class="intercept-request-info">
+                      <div class="request-meta">
+                        <span class="method-badge" id="intercept-method">GET</span>
+                        <span class="url-text" id="intercept-url">https://example.com</span>
+                      </div>
+                    </div>
+
+                    <!-- Editor Tabs -->
+                    <div class="editor-tabs">
+                      <button class="editor-tab active" data-editor-tab="raw">Raw</button>
+                      <button class="editor-tab" data-editor-tab="headers">Headers</button>
+                      <button class="editor-tab" data-editor-tab="params">Params</button>
+                      <button class="editor-tab" data-editor-tab="body">Body</button>
+                    </div>
+
+                    <!-- Editor Content -->
+                    <div class="editor-content">
+                      <div id="intercept-raw-editor" class="editor-panel active">
+                        <textarea id="intercept-raw-text" class="code-editor" spellcheck="false"></textarea>
+                      </div>
+                      <div id="intercept-headers-editor" class="editor-panel">
+                        <div id="intercept-headers-list" class="headers-list"></div>
+                      </div>
+                      <div id="intercept-params-editor" class="editor-panel">
+                        <div id="intercept-params-list" class="params-list"></div>
+                      </div>
+                      <div id="intercept-body-editor" class="editor-panel">
+                        <textarea id="intercept-body-text" class="code-editor" spellcheck="false"></textarea>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Repeater -->
+          <div id="repeater-panel" class="tab-panel">
+            <div class="panel-content">
+              <div class="action-bar">
+                <button id="send-request" class="btn btn-primary">▶️ Send</button>
+                <button id="star-request" class="btn">⭐</button>
+                <button id="screenshot-btn" class="btn">📸</button>
+                <button id="undo-btn" class="btn">↶</button>
+                <button id="redo-btn" class="btn">↷</button>
+                <button id="send-to-intruder" class="btn btn-accent" title="Send to Intruder">⚔️ Intruder</button>
+                <button id="ai-explain" class="btn btn-ai">✨ Explain</button>
+                <div class="dropdown" id="ai-actions-container">
+                  <button class="btn btn-ai" id="ai-actions-dropdown">
+                    🎯 AI Actions
+                  </button>
+                  <div class="dropdown-menu" id="ai-dropdown-menu">
+                    <button class="dropdown-item" data-action="suggest-attacks">🔍 Suggest Attack Vectors</button>
+                    <button class="dropdown-item" data-action="security-analysis">🔒 Security Analysis</button>
+                    <button class="dropdown-item" data-action="analyze-response">📊 Analyze Response</button>
+                    <button class="dropdown-item" data-action="generate-api-docs">📚 Generate API Docs</button>
+                    <button class="dropdown-item" data-action="generate-test-cases">🧪 Generate Test Cases</button>
+                    <button class="dropdown-item" data-action="map-attack-surface">🗺️ Map Attack Surface</button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="repeater-body scrollable">
+                <!-- Request/Response Split View -->
+                <div class="split-view" id="main-split-view">
+                  <!-- Request Editor -->
+                  <div class="editor-section" id="request-section">
+                    <div class="editor-header">
+                      <h3>Request</h3>
+                      <div class="editor-controls">
+                        <div class="layout-toggle">
+                          <button class="layout-btn active" data-layout="horizontal" title="Horizontal Split">⬌</button>
+                          <button class="layout-btn" data-layout="vertical" title="Vertical Split">⬍</button>
+                        </div>
+                        <button class="btn-small" id="fullscreen-request" title="Fullscreen">⛶</button>
+                        <button class="btn-small" id="wrap-request" title="Wrap Lines">↩</button>
+                      </div>
+                    </div>
+                    <div class="editor-content" id="request-content">
+                      <textarea id="request-editor" class="code-editor" spellcheck="false"></textarea>
+                    </div>
+                  </div>
+
+                  <!-- Resizer -->
+                  <div class="split-resizer horizontal" id="split-resizer"></div>
+
+                  <!-- Response Viewer -->
+                  <div class="editor-section" id="response-section">
+                    <div class="editor-header">
+                      <h3>Response</h3>
+                      <div class="editor-controls">
+                        <span id="response-status"></span>
+                        <span id="response-time" class="info-badge"></span>
+                        <span id="response-size" class="info-badge"></span>
+                        <button class="btn-small" id="fullscreen-response" title="Fullscreen">⛶</button>
+                        <button class="btn-small" id="beautify-response" title="Beautify JSON/HTML">{ }</button>
+                      </div>
+                    </div>
+                    <div class="editor-content" id="response-content">
+                      <pre id="response-viewer" class="code-viewer"></pre>
+                    </div>
+                  </div>
+                </div>
+                
+                <div id="ai-resizer" class="horizontal-resizer" title="Resize AI panel"></div>
+                
+                <div id="ai-panel" class="ai-panel">
+                  <div class="ai-header">
+                    <h3>AI Assistant</h3>
+                    <span class="ai-status" id="ai-status">Idle</span>
+                  </div>
+                  <div id="ai-content" class="ai-content">
+                    <p class="ai-placeholder">Select a request and click ✨ Explain or choose an action from the AI menu.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Intruder -->
+          <div id="intruder-panel" class="tab-panel scrollable">
+            <div class="intruder-layout">
+              <!-- Target Configuration -->
+              <div class="intruder-section">
+                <h3>Target & Attack Type</h3>
+                <div class="attack-mode-selector">
+                  <label>Attack Mode:</label>
+                  <select id="attack-mode" class="attack-mode-select">
+                    <option value="sniper">Sniper - Single position testing</option>
+                    <option value="battering-ram">Battering Ram - Same payload all positions</option>
+                    <option value="pitchfork">Pitchfork - Parallel iteration</option>
+                    <option value="cluster-bomb">Cluster Bomb - All combinations</option>
+                  </select>
+                </div>
+                <div class="mode-description" id="mode-description">
+                  <strong>Sniper:</strong> Tests each position independently with its own payloads
+                </div>
+              </div>
+
+              <!-- Positions -->
+              <div class="intruder-section">
+                <h3>Positions</h3>
+                <div class="intruder-toolbar">
+                  <button class="btn-small" id="auto-mark-params">Auto-mark Parameters</button>
+                  <button class="btn-small" id="clear-positions">Clear All §</button>
+                  <button class="btn-small" id="add-position-start">Add § Start</button>
+                  <button class="btn-small" id="add-position-end">Add § End</button>
+                </div>
+                <div class="intruder-editor">
+                  <textarea id="intruder-template" class="code-editor" rows="12" placeholder="POST /api/user HTTP/1.1&#10;Host: example.com&#10;Content-Type: application/json&#10;&#10;{&#10;  &quot;id&quot;: §1§,&#10;  &quot;role&quot;: §admin§&#10;}"></textarea>
+                </div>
+                <div id="positions-list" class="positions-list"></div>
+              </div>
+
+              <!-- Payloads -->
+              <div class="intruder-section">
+                <h3>💣 Payloads</h3>
+                <div id="payload-sets" class="payload-sets">
+                  <!-- Payload sets will be dynamically generated here -->
+                </div>
+                
+                <!-- Payload Library -->
+                <div class="payload-library">
+                  <h4>📚 Payload Library</h4>
+                  <div class="library-grid">
+                    <button class="library-btn" data-type="numbers">🔢 Numbers (1-100)</button>
+                    <button class="library-btn" data-type="common-passwords">🔑 Common Passwords</button>
+                    <button class="library-btn" data-type="sql-injection">💉 SQL Injection</button>
+                    <button class="library-btn" data-type="xss">🚨 XSS Payloads</button>
+                    <button class="library-btn" data-type="path-traversal">📁 Path Traversal</button>
+                    <button class="library-btn" data-type="command-injection">⚡ Command Injection</button>
+                    <button class="library-btn" data-type="usernames">👤 Common Usernames</button>
+                    <button class="library-btn" data-type="fuzzing">🎲 Fuzzing Strings</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Options (Burp Suite Pro features) -->
+              <div class="intruder-section collapsible">
+                <h3 class="section-toggle">⮟ Options<span>(Grep Match, Grep Extract, Redirections)</span></h3>
+                <div class="section-content">
+                  <!-- Grep Match -->
+                  <div class="option-group">
+                    <h4>Grep - Match</h4>
+                    <p class="option-desc">Flag responses containing these expressions</p>
+                    <div class="grep-match-controls">
+                      <input type="text" id="grep-match-input" placeholder="e.g., error, success, invalid" class="text-input">
+                      <button class="btn-small" id="add-grep-match">Add</button>
+                    </div>
+                    <div id="grep-match-list" class="grep-list"></div>
+                  </div>
+
+                  <!-- Grep Extract -->
+                  <div class="option-group">
+                    <h4>Grep - Extract</h4>
+                    <p class="option-desc">Extract specific data from responses using regex</p>
+                    <div class="grep-extract-controls">
+                      <input type="text" id="grep-extract-input" placeholder='e.g., "token":"([^"]+)"' class="text-input">
+                      <button class="btn-small" id="add-grep-extract">Add</button>
+                    </div>
+                    <div id="grep-extract-list" class="grep-list"></div>
+                  </div>
+
+                  <!-- Redirections -->
+                  <div class="option-group">
+                    <h4>Redirections</h4>
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="follow-redirects" checked>
+                      <span>Follow redirects</span>
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="process-cookies">
+                      <span>Process cookies in redirects</span>
+                    </label>
+                  </div>
+
+                  <!-- Request Engine -->
+                  <div class="option-group">
+                    <h4>Request Engine</h4>
+                    <label>Threads: <input type="number" id="thread-count" value="4" min="1" max="20" class="input-narrow"></label>
+                    <label>Delay (ms): <input type="number" id="request-delay" value="0" min="0" max="5000" class="input-medium"></label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Attack Controls -->
+              <div class="intruder-controls">
+                <button id="start-attack" class="btn btn-primary">
+                  <span>▶️</span> Start Attack
+                </button>
+                <button id="pause-attack" class="btn" disabled>
+                  <span>⏸️</span> Pause
+                </button>
+                <button id="stop-attack" class="btn btn-danger" disabled>
+                  <span>⏹️</span> Stop
+                </button>
+                <div class="attack-progress">
+                  <span id="attack-status">Ready</span>
+                  <span id="attack-count">0 / 0</span>
+                </div>
+              </div>
+
+              <!-- Results -->
+              <div class="results-section">
+                <div class="results-header">
+                  <h3>Attack Results</h3>
+                  <div class="results-controls">
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="diff-view-toggle">
+                      <span>Diff View</span>
+                    </label>
+                    <button class="btn-small" id="export-results">Export CSV</button>
+                    <button class="btn-small" id="clear-results">Clear</button>
+                  </div>
+                </div>
+                <div class="results-table-wrapper">
+                  <table id="results-table" class="results-table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Payload</th>
+                        <th>Status</th>
+                        <th>Length</th>
+                        <th>Time</th>
+                        <th id="grep-columns"></th>
+                      </tr>
+                    </thead>
+                    <tbody id="results-body"></tbody>
+                  </table>
+                </div>
+
+                <!-- Diff Viewer -->
+                <div id="diff-viewer" class="diff-viewer hidden">
+                  <div class="diff-header">
+                    <h4>Response Diff</h4>
+                    <button class="close-btn" id="close-diff">✕</button>
+                  </div>
+                  <div id="diff-content" class="diff-content"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scanner -->
+          <div id="scanner-panel" class="tab-panel scrollable">
+            <div class="scanner-layout">
+              <div class="scanner-header">
+                <h3>🔍 Professional Security Scanner</h3>
+                <p class="section-description">Automated vulnerability detection with AI-powered validation</p>
+              </div>
+
+              <!-- Scan Controls -->
+              <div class="scanner-controls">
+                <button id="scan-js-files" class="btn btn-primary">🔍 Scan JavaScript Files</button>
+                <button id="scan-all-responses" class="btn btn-primary">📄 Scan All Responses</button>
+                <button id="scan-headers" class="btn">📋 Scan Headers</button>
+                <button id="validate-with-ai" class="btn btn-ai" title="Validate findings with AI">✨ AI Validate</button>
+              </div>
+
+              <!-- Scanner Stats -->
+              <div class="scanner-stats-grid">
+                <div class="stat-card">
+                  <div class="stat-value" id="files-scanned">0</div>
+                  <div class="stat-label">Files Scanned</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-value" id="secrets-found">0</div>
+                  <div class="stat-label">Secrets Found</div>
+                </div>
+                <div class="stat-card high">
+                  <div class="stat-value" id="high-confidence">0</div>
+                  <div class="stat-label">High Risk</div>
+                </div>
+                <div class="stat-card medium">
+                  <div class="stat-value" id="medium-confidence">0</div>
+                  <div class="stat-label">Medium Risk</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-value" id="vulnerabilities-found">0</div>
+                  <div class="stat-label">Vulnerabilities</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-value" id="ai-validated">0</div>
+                  <div class="stat-label">AI Validated</div>
+                </div>
+              </div>
+
+              <!-- Filters -->
+              <div class="scanner-filters">
+                <input type="text" id="secret-search" placeholder="Search findings..." class="text-input">
+                <select id="confidence-filter" class="text-input">
+                  <option value="all">All Confidence Levels</option>
+                  <option value="high">High Only</option>
+                  <option value="medium">Medium Only</option>
+                  <option value="low">Low Only</option>
+                </select>
+                <select id="type-filter" class="text-input">
+                  <option value="all">All Types</option>
+                  <option value="api_key">API Keys</option>
+                  <option value="jwt">JWT Tokens</option>
+                  <option value="password">Passwords</option>
+                  <option value="aws_key">AWS Keys</option>
+                  <option value="github_token">GitHub Tokens</option>
+                  <option value="private_key">Private Keys</option>
+                </select>
+                <select id="validation-filter" class="text-input">
+                  <option value="all">All Findings</option>
+                  <option value="validated">AI Validated</option>
+                  <option value="unvalidated">Not Validated</option>
+                  <option value="false-positive">False Positives</option>
+                </select>
+              </div>
+
+              <!-- Findings List -->
+              <div id="secrets-list" class="secrets-list"></div>
+            </div>
+          </div>
+
+          <!-- Manipulation -->
+          <div id="manipulation-panel" class="tab-panel scrollable">
+            <div class="manipulation-simple-layout">
+              <h3>🎭 Response Manipulation</h3>
+              <p class="section-description">
+                Capture the current page response, edit it completely, and inject it back into the browser.
+              </p>
+
+              <div id="manipulation-message" class="message" style="display:none;"></div>
+
+              <!-- Actions -->
+              <div class="manipulation-actions">
+                <button id="capture-page-btn" class="btn btn-primary btn-large">
+                  📸 Capture Current Page
+                </button>
+                <button id="edit-response-btn" class="btn btn-secondary" disabled>
+                  ✏️ Edit Response
+                </button>
+                <button id="send-to-browser-btn" class="btn btn-success" disabled>
+                  🚀 Send to Browser
+                </button>
+                <button id="clear-response-btn" class="btn btn-danger" disabled>
+                  🗑️ Clear
+                </button>
+              </div>
+
+              <!-- Response Preview -->
+              <div class="manipulation-preview">
+                <h4>Captured Response</h4>
+                <div id="response-preview" class="response-preview">
+                  <p class="empty-state">No response captured yet. Click "Capture Current Page" to start.</p>
+                </div>
+              </div>
+
+              <!-- Instructions -->
+              <div class="manipulation-instructions">
+                <h4>📖 How to Use</h4>
+                <ol>
+                  <li><strong>Capture:</strong> Click "Capture Current Page" to fetch the current page response</li>
+                  <li><strong>Edit:</strong> Click "Edit Response" to modify status code, headers, and body</li>
+                  <li><strong>Send:</strong> Click "Send to Browser" to inject your modified response</li>
+                  <li><strong>Result:</strong> Browser displays your modified content immediately!</li>
+                </ol>
+                <p class="hint">💡 Perfect for bypassing client-side restrictions, testing error handling, and security testing!</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat -->
+          <div id="chat-panel" class="tab-panel">
+            <div class="chat-layout">
+              <div class="chat-header">
+                <h3>AI Security Assistant</h3>
+                <div class="chat-controls">
+                   <select id="chat-context-select" class="text-input">
+                      <option value="none">💬 General Chat (Ultra Hacker Persona)</option>
+                      <option value="all-requests">📋 All Requests (Requests Tab)</option>
+                      <option value="selected-request">🎯 Selected Request (Repeater)</option>
+                   </select>
+                   <button id="chat-clear-btn" class="btn">🗑️ Clear</button>
+                </div>
+              </div>
+              
+              <div id="chat-messages" class="chat-messages">
+                 <div class="chat-welcome">
+                    <h3>👋 EchoPlus AI Chat</h3>
+                    <p>Your AI-powered security assistant. Choose a context mode above or try these quick actions:</p>
+                    <div class="chat-prompts">
+                       <button class="chat-prompt-chip" data-prompt="Analyze all requests in the Requests tab for security vulnerabilities" data-context="all-requests">📊 Analyze All Requests</button>
+                       <button class="chat-prompt-chip" data-prompt="Identify any IDOR vulnerabilities in the captured traffic" data-context="all-requests">🔓 Find IDORs</button>
+                       <button class="chat-prompt-chip" data-prompt="Explain how to find SQL injection vulnerabilities" data-context="none">📚 SQL Injection Guide</button>
+                       <button class="chat-prompt-chip" data-prompt="What are the latest web application attack techniques?" data-context="none">🔥 Latest Attack Techniques</button>
+                    </div>
+                 </div>
+              </div>
+              
+              <div class="chat-input-area">
+                 <textarea id="chat-input" placeholder="Type your message... (Shift+Enter for new line)" rows="1"></textarea>
+                 <button id="chat-send-btn" class="btn btn-primary">➤</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Settings -->
+          <div id="settings-panel" class="tab-panel scrollable">
+            <h3>Settings</h3>
+            
+            <div class="settings-container">
+              <!-- Scope Settings Section -->
+              <div class="settings-section">
+              <h4>🎯 Scope Settings</h4>
+              <p class="section-description">
+                Control which URLs/domains are captured and analyzed. Use wildcards (*) for flexible matching.
+              </p>
+              
+              <div class="scope-mode-select">
+                <label for="scope-mode">Mode:</label>
+                <select id="scope-mode" class="text-input">
+                  <option value="include">Include (Whitelist) - Only capture matching URLs</option>
+                  <option value="exclude">Exclude (Blacklist) - Capture everything except matches</option>
+                </select>
+              </div>
+              
+              <div class="scope-input-group">
+                <input type="text" id="scope-pattern" placeholder="e.g., *example.com* or https://api.target.com/*" class="text-input">
+                <input type="text" id="scope-description" placeholder="Description (optional)" class="text-input">
+                <div class="scope-buttons">
+                  <button id="add-scope-rule" class="btn btn-primary">Add Rule</button>
+                  <button id="add-current-domain" class="btn">📍 Add Current Domain</button>
+                </div>
+              </div>
+              
+              <div class="scope-stats" id="scope-stats">0 active / 0 total rules</div>
+              
+              <div id="scope-rules-list" class="scope-rules-list"></div>
+              
+              <div class="scope-actions">
+                <button id="import-scope" class="btn btn-sm">📥 Import</button>
+                <button id="export-scope" class="btn btn-sm">📤 Export</button>
+              </div>
+              
+              <div class="scope-help">
+                <strong>Pattern Examples:</strong>
+                <ul>
+                  <li><code>*example.com*</code> - Matches any URL with example.com</li>
+                  <li><code>https://api.target.com/*</code> - Matches all API endpoints</li>
+                  <li><code>*.js</code> - Matches all JavaScript files</li>
+                  <li><code>*login*</code> - Matches URLs containing 'login'</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div class="settings-section">
+              <h4>AI Provider</h4>
+              <select id="ai-provider" class="text-input">
+                <option value="claude">Anthropic Claude</option>
+                <option value="openai">OpenAI</option>
+                <option value="gemini">Google Gemini</option>
+                <option value="ollama">Ollama (Local)</option>
+              </select>
+              
+              <label for="api-key">API Key:</label>
+              <input type="password" id="api-key" placeholder="Enter your API key" class="text-input">
+              
+              <label for="api-endpoint" class="hidden">Ollama Endpoint:</label>
+              <input type="text" id="api-endpoint" placeholder="http://localhost:11434" class="text-input hidden">
+              
+              <label for="model-select">Model:</label>
+              <select id="model-select" class="text-input">
+                <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
+                <option value="claude-3-opus-20240229">Claude 3 Opus</option>
+                <option value="claude-3-haiku-20240307">Claude 3 Haiku</option>
+              </select>
+              
+              <button id="save-settings" class="btn btn-primary">Save Settings</button>
+              
+              <div class="settings-help">
+                <p class="help-text">
+                  <strong>Ollama:</strong> Free local AI. Install from <a href="https://ollama.ai" target="_blank">ollama.ai</a><br>
+                  <strong>Cloud APIs:</strong> Require API key and internet connection
+                </p>
+              </div>
+            </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/utils/converters.js"></script>
+  <script src="js/utils/filters.js"></script>
+  <script src="js/utils/diff.js"></script>
+  <script src="js/utils/entropy.js"></script>
+  <script src="js/utils/safe-dom.js"></script>
+  <script src="js/core/storage.js"></script>
+  <script src="js/core/request-capture.js"></script>
+  <script src="js/core/request-replay.js"></script>
+  <script src="js/core/response-interceptor.js"></script>
+  <script src="js/ai/providers/claude.js"></script>
+  <script src="js/ai/providers/openai.js"></script>
+  <script src="js/ai/providers/gemini.js"></script>
+  <script src="js/ai/providers/ollama-proxy.js"></script>
+  <script src="js/ai/ai-manager-enhanced.js"></script>
+  <script src="js/ui/intercept.js"></script>
+  <script src="js/ui/repeater.js"></script>
+  <script src="js/ui/intruder-enhanced.js"></script>
+  <script src="js/ui/scanner.js"></script>
+  <script src="js/ui/manipulation-simple.js"></script>
+  <script src="js/ui/chat.js"></script>
+  <script src="js/ui/scope-settings.js"></script>
+  <script src="js/ui/settings.js"></script>
+  <script src="panel.js"></script>
+</body>
+</html>

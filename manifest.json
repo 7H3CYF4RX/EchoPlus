@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "EchoPlus",
+  "version": "2.0.0",
+  "description": "Professional Chrome DevTools extension with Repeater, Intruder, Scanner, and Response Manipulation - AI-powered security testing by Muhammed Farhan",
+  "author": "Muhammed Farhan (7H3CYF4RX)",
+  "homepage_url": "https://github.com/7H3CYF4RX/EchoPlus",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "devtools_page": "devtools.html",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "storage",
+    "webRequest",
+    "debugger",
+    "contextMenus",
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://*"
+  },
+  "action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "EchoPlus"
+  }
+}
