@@ -18,17 +18,9 @@ A powerful Chrome DevTools extension inspired by Burp Suite, featuring Repeater,
 - **Screenshots** - Capture request/response pairs
 
 ### Advanced Search & Filtering
-- **Powerful Filters** - Filter by method (GET, POST, PUT, DELETE, etc.)
+- **Powerful Filters** - Filter by method (GET, POST)
 - **Regex Search** - Search across URL, headers, and body with regex support
 - **Starred Requests** - Pin important requests to keep them accessible
-
-### Data Converters
-Right-click context menu for instant encoding/decoding:
-- Base64 Encode/Decode
-- URL Encode/Decode
-- JWT Decode (view payload instantly)
-- Hex Encode/Decode
-- UTF-8 conversions
 
 ### ⚡ Intruder Tab
 Professional attack automation with four modes:
