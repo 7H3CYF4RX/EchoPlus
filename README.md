@@ -15,7 +15,6 @@ A powerful Chrome DevTools extension inspired by Burp Suite, featuring Repeater,
 - **🚦 Intercept** - Real-time request/response interception and modification
 - **🎭 Manipulation** - Response tampering and injection
 - **💬 Chat** - AI assistant with Ultra Hacker Persona mode
-- **🔧 Converters** - Base64, URL, JWT, Hex encoding/decoding
 - **🎨 Themes** - Light/Dark mode support
 
 ### AI Integration
