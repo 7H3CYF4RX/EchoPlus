@@ -69,3 +69,5 @@ MIT License - See LICENSE file
 ---
 
 Inspired by Burp Suite • Built for security professionals
+
+#          ⚠️ STILL IN DEVELOPMENT, MAY CONTAIN ERRORS
