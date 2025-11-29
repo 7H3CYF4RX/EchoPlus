@@ -11,7 +11,6 @@ A powerful Chrome DevTools extension inspired by Burp Suite, featuring Repeater,
 
 - **🔁 Repeater** - Edit and replay HTTP requests with AI analysis
 - **⚡ Intruder** - Automated attacks (Sniper, Battering Ram, Pitchfork, Cluster Bomb) with payload library
-- **� Scanner** - AI-powered secret detection in JavaScript files
 - **🚦 Intercept** - Real-time request/response interception and modification
 - **🎭 Manipulation** - Response tampering and injection
 - **💬 Chat** - AI assistant with Ultra Hacker Persona mode
