@@ -63,7 +63,7 @@ MIT License - See LICENSE file
 
 **Muhammed Farhan** (7H3CYF4RX)
 - GitHub: [@7H3CYF4RX](https://github.com/7H3CYF4RX)
-- Contributors: [@MRG6OOT](https://github.com/MRG6OOT)
+- Contributors: [@MRG6OOT](https://github.com/MRG6OOT), [Sensei-Glitch99](https://github.com/Sensei-Glitch99)
 
 ---
 
